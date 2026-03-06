@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-1: #f2f8f9;
+  --bg-2: #fff7ea;
+  --ink: #15212d;
+  --ink-soft: #496176;
+  --accent: #0d8b8f;
+  --accent-deep: #0f5f63;
+  --warn: #d97706;
+  --danger: #c2410c;
+  --line: #d7e4ea;
+  --skeleton-base: #dbe7f2;
+  --skeleton-highlight: #f4f8fc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "IBM Plex Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(1200px 500px at 0% -10%, #cff3eb 0%, transparent 55%),
+    radial-gradient(1200px 500px at 100% -20%, #ffe2ba 0%, transparent 55%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+}
+
+html.dark body {
+  color: #e2e8f0;
+  background:
+    radial-gradient(1200px 500px at 0% -10%, rgba(14, 116, 144, 0.3) 0%, transparent 55%),
+    radial-gradient(1200px 500px at 100% -20%, rgba(2, 132, 199, 0.22) 0%, transparent 55%),
+    linear-gradient(165deg, #020617, #0f172a);
+  --skeleton-base: #1e293b;
+  --skeleton-highlight: #334155;
+}
+
+a {
+  color: inherit;
+}
+
+.react-loading-skeleton {
+  --base-color: var(--skeleton-base);
+  --highlight-color: var(--skeleton-highlight);
+}
