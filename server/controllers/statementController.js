@@ -1,7 +1,14 @@
 import Statement from "../models/Statement.js";
+import StatementSummary from "../models/StatementSummary.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
-import { parseStatementFile } from "../services/statementParser.js";
+import {
+  buildSummaryFromTransactions,
+} from "../services/statementSummaryService.js";
+import {
+  extractTransactions,
+  calculateSummary,
+} from "../services/transactionExtractor.js";
 import { clearUserCache } from "../middleware/cache.middleware.js";
 import logger from "../utils/logger.js";
 
@@ -178,6 +185,56 @@ const getStatementWithAccess = async (req, statementId) => {
   return statement;
 };
 
+const persistStatementSummary = async (userId, summary) => {
+  const payload = {
+    userId,
+    totalCredit: Number(summary?.totalCredit || 0),
+    totalDebit: Number(summary?.totalDebit || 0),
+    balance: Number(summary?.balance || 0),
+    transactionCount: Number(summary?.transactionCount || 0),
+  };
+
+  if (
+    payload.transactionCount > 0 &&
+    payload.totalCredit === 0 &&
+    payload.totalDebit === 0
+  ) {
+    logger.warn(
+      {
+        userId,
+        summary: payload,
+      },
+      "Summary consistency guard applied: non-zero transactionCount with zero totals"
+    );
+    payload.transactionCount = 0;
+  }
+
+  const summaryDoc = await StatementSummary.create(payload);
+
+  logger.info(
+    {
+      userId,
+      summaryId: summaryDoc._id,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
+      createdAt: summaryDoc.createdAt,
+    },
+    "Summary saved"
+  );
+  console.log("Summary saved", {
+    userId,
+    totalCredit: summaryDoc.totalCredit,
+    totalDebit: summaryDoc.totalDebit,
+    balance: summaryDoc.balance,
+    transactionCount: summaryDoc.transactionCount,
+    createdAt: summaryDoc.createdAt,
+  });
+
+  return summaryDoc;
+};
+
 export const uploadStatement = asyncHandler(async (req, res) => {
   ensureAuthenticated(req);
 
@@ -202,15 +259,35 @@ export const uploadStatement = asyncHandler(async (req, res) => {
     uploadDate: uploadDate || new Date(),
     transactions: filteredTransactions,
   });
+  const summary = buildSummaryFromTransactions(filteredTransactions);
+  const summaryDoc = await persistStatementSummary(ownerId, summary);
   await invalidateStatementCaches(req, ownerId);
+
+  logger.info(
+    {
+      userId: ownerId,
+      fileName,
+      savedTransactions: filteredTransactions.length,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
+    },
+    "Upload done"
+  );
 
   res.status(201).json({
     success: true,
     message: "Statement uploaded successfully.",
     data: statement,
+    summary: summaryDoc,
     meta: {
       savedTransactions: filteredTransactions.length,
       duplicatesRemoved,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
     },
   });
 });
@@ -223,18 +300,38 @@ export const uploadStatementFile = asyncHandler(async (req, res) => {
   }
 
   const ownerId = resolveOwnerId(req, req.body?.userId);
-  const parsed = await parseStatementFile(req.file);
-  assertTransactionsPresent(
-    parsed.transactions,
-    "No valid transactions detected. Please upload a clearer statement or add transactions manually."
-  );
+  let extraction = {
+    transactions: [],
+    stage: "none",
+    source: "none",
+    extractedText: "",
+  };
+
+  try {
+    extraction = await extractTransactions(req.file);
+  } catch (error) {
+    logger.error(
+      {
+        error: error.message,
+        fileName: req.file.originalname,
+      },
+      "Transaction extraction failed for uploaded statement file"
+    );
+    throw new ApiError(
+      422,
+      "No valid transactions detected. Please upload a clearer statement or add transactions manually."
+    );
+  }
 
   const { transactions: filteredTransactions, duplicatesRemoved } =
-    await filterExistingTransactions(ownerId, parsed.transactions);
+    await filterExistingTransactions(ownerId, extraction.transactions || []);
   assertTransactionsPresent(
     filteredTransactions,
-    "All extracted transactions already exist in your account."
+    (extraction.transactions || []).length > 0
+      ? "No new valid transactions to save. Uploaded data may be duplicated."
+      : "No valid transactions detected. Please upload a clearer statement or add transactions manually."
   );
+  const summaryAnalysisForSave = calculateSummary(filteredTransactions);
 
   const statement = await Statement.create({
     userId: ownerId,
@@ -242,30 +339,54 @@ export const uploadStatementFile = asyncHandler(async (req, res) => {
     uploadDate: new Date(),
     transactions: filteredTransactions,
   });
+  const summaryDoc = await persistStatementSummary(ownerId, summaryAnalysisForSave);
   await invalidateStatementCaches(req, ownerId);
 
   logger.info(
     {
-      parserStage: parsed.stage,
-      stageChain: parsed.debug?.stageChain || [parsed.stage],
-      parsedTransactions: parsed.transactions.length,
+      parserStage: extraction.stage,
+      summaryStage: "calculated-from-filtered-transactions",
+      summarySource: extraction.source,
+      parsedTransactions: (extraction.transactions || []).length,
       savedTransactions: filteredTransactions.length,
       duplicatesRemoved,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
       fileName: req.file.originalname,
     },
     "Statement upload parsing pipeline completed"
+  );
+  logger.info(
+    {
+      userId: ownerId,
+      fileName: req.file.originalname,
+      savedTransactions: filteredTransactions.length,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
+    },
+    "Upload done"
   );
 
   res.status(201).json({
     success: true,
     message: "Statement file uploaded and parsed successfully.",
     data: statement,
+    summary: summaryDoc,
     meta: {
-      parsedTransactions: parsed.transactions.length,
+      parsedTransactions: (extraction.transactions || []).length,
       savedTransactions: filteredTransactions.length,
       duplicatesRemoved,
-      parserStage: parsed.stage,
-      stageChain: parsed.debug?.stageChain || [parsed.stage],
+      parserStage: extraction.stage,
+      summaryStage: "calculated-from-filtered-transactions",
+      summarySource: extraction.source,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
     },
   });
 });
@@ -297,15 +418,22 @@ export const addManualTransaction = asyncHandler(async (req, res) => {
     uploadDate: new Date(),
     transactions: filteredTransactions,
   });
+  const summary = buildSummaryFromTransactions(filteredTransactions);
+  const summaryDoc = await persistStatementSummary(ownerId, summary);
   await invalidateStatementCaches(req, ownerId);
 
   res.status(201).json({
     success: true,
     message: "Manual transaction added successfully.",
     data: statement,
+    summary: summaryDoc,
     meta: {
       savedTransactions: filteredTransactions.length,
       duplicatesRemoved,
+      totalCredit: summaryDoc.totalCredit,
+      totalDebit: summaryDoc.totalDebit,
+      balance: summaryDoc.balance,
+      transactionCount: summaryDoc.transactionCount,
     },
   });
 });

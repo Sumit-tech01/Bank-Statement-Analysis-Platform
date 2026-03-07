@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import api from "../api/api.js";
-import ChartsSection from "../components/ChartsSection.jsx";
-import DashboardCards from "../components/DashboardCards.jsx";
+import BalanceChart from "../components/BalanceChart.jsx";
+import CreditDebitChart from "../components/CreditDebitChart.jsx";
+import SummaryCards from "../components/SummaryCards.jsx";
+import TransactionChart from "../components/TransactionChart.jsx";
 import Button from "../components/ui/Button.jsx";
 import Card from "../components/ui/Card.jsx";
 
@@ -64,12 +66,16 @@ const readBudgets = () => {
 };
 
 const Dashboard = () => {
-  const [summary, setSummary] = useState({
-    totalIncome: 0,
-    totalExpenses: 0,
-    balance: 0,
-  });
+  const [summary, setSummary] = useState(null);
   const [statements, setStatements] = useState([]);
+  const [chartData, setChartData] = useState({
+    credit: 0,
+    debit: 0,
+    balance: 0,
+    transactionCount: 0,
+    trend: [],
+  });
+  const [hasSummaryData, setHasSummaryData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [aiInsights, setAiInsights] = useState([]);
@@ -84,24 +90,86 @@ const Dashboard = () => {
     setAiError("");
 
     try {
-      const [summaryResponse, statementsResponse] = await Promise.all([
+      const [summaryResponse, chartResponse, statementsResponse] = await Promise.all([
         api.get("/analysis/summary"),
+        api.get("/analysis/chart"),
         api.get("/statements", { params: { page: 1, limit: 100 } }),
       ]);
 
       const summaryData = summaryResponse?.data?.data || {};
+      const summaryMeta = summaryResponse?.data?.meta || {};
+      const chartApiData = chartResponse?.data?.data || {};
       const statementsData = Array.isArray(statementsResponse?.data?.data)
         ? statementsResponse.data.data
         : [];
 
+      const totalCredit = Number(
+        summaryData.totalCredit ?? summaryData.totalIncome ?? chartApiData.credit ?? 0
+      );
+      const totalDebit = Number(
+        summaryData.totalDebit ?? summaryData.totalExpenses ?? chartApiData.debit ?? 0
+      );
+      const balance = Number(summaryData.balance ?? (totalCredit - totalDebit));
+      const transactionCount = Number(
+        summaryData.transactionCount ?? chartApiData.transactionCount ?? 0
+      );
+      const trendFromApi = Array.isArray(chartApiData.trend) ? chartApiData.trend : [];
+      const chartHasTotals =
+        trendFromApi.length > 0 ||
+        [chartApiData.credit, chartApiData.debit, chartApiData.balance, chartApiData.transactionCount]
+          .map((value) => Number(value || 0))
+          .some((value) => value !== 0);
+      const inferredHasData =
+        transactionCount > 0 || totalCredit > 0 || totalDebit > 0;
+      const resolvedHasData =
+        typeof summaryMeta.hasData === "boolean"
+          ? summaryMeta.hasData
+          : inferredHasData;
+
       setSummary({
-        totalIncome: Number(summaryData.totalIncome || 0),
-        totalExpenses: Number(summaryData.totalExpenses || 0),
-        balance: Number(summaryData.balance || 0),
+        totalCredit,
+        totalDebit,
+        totalIncome: totalCredit,
+        totalExpenses: totalDebit,
+        balance,
+        transactionCount,
       });
+      console.log("Summary state", {
+        totalCredit,
+        totalDebit,
+        balance,
+        transactionCount,
+      });
+      setChartData({
+        credit: chartHasTotals ? Number(chartApiData.credit || 0) : totalCredit,
+        debit: chartHasTotals ? Number(chartApiData.debit || 0) : totalDebit,
+        balance: chartHasTotals ? Number(chartApiData.balance || 0) : balance,
+        transactionCount: chartHasTotals
+          ? Number(chartApiData.transactionCount || 0)
+          : transactionCount,
+        trend:
+          trendFromApi.length > 0
+            ? trendFromApi
+            : resolvedHasData
+              ? [
+                  {
+                    index: 1,
+                    label: new Date().toISOString().slice(0, 10),
+                    createdAt: new Date().toISOString(),
+                    credit: totalCredit,
+                    debit: totalDebit,
+                    balance,
+                    transactionCount,
+                  },
+                ]
+              : [],
+      });
+      setHasSummaryData(resolvedHasData);
       setStatements(statementsData);
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Unable to load dashboard analytics."));
+      setSummary(null);
+      setHasSummaryData(false);
     } finally {
       setLoading(false);
     }
@@ -234,9 +302,43 @@ const Dashboard = () => {
         </div>
       </Card>
 
-      <DashboardCards summary={summary} transactionCount={transactions.length} loading={loading} />
+      {!loading && !hasSummaryData ? (
+        <Card>
+          <p className="text-sm text-slate-600 dark:text-slate-300">No summary yet</p>
+        </Card>
+      ) : (
+        <SummaryCards
+          summary={summary}
+          transactionCount={summary?.transactionCount ?? 0}
+          loading={loading}
+        />
+      )}
 
-      <ChartsSection summary={summary} transactions={transactions} loading={loading} error={error} />
+      {error ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
+          {error}
+        </p>
+      ) : null}
+
+      {!loading && !hasSummaryData ? null : (
+        <section className="grid gap-4 xl:grid-cols-12">
+          <CreditDebitChart
+            className="xl:col-span-4"
+            data={chartData}
+            loading={loading}
+          />
+          <TransactionChart
+            className="xl:col-span-8"
+            data={chartData}
+            loading={loading}
+          />
+          <BalanceChart
+            className="xl:col-span-12"
+            trend={chartData.trend}
+            loading={loading}
+          />
+        </section>
+      )}
 
       <motion.section
         className="grid gap-4 xl:grid-cols-12"

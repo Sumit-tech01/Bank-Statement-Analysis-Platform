@@ -236,7 +236,10 @@ const swaggerOptions = {
               properties: {
                 totalIncome: { type: "number", example: 64000 },
                 totalExpenses: { type: "number", example: 25500 },
+                totalCredit: { type: "number", example: 64000 },
+                totalDebit: { type: "number", example: 25500 },
                 balance: { type: "number", example: 38500 },
+                transactionCount: { type: "number", example: 42 },
                 categorySpendingSummary: {
                   type: "array",
                   items: {
@@ -244,6 +247,40 @@ const swaggerOptions = {
                     properties: {
                       category: { type: "string", example: "rent" },
                       totalSpent: { type: "number", example: 12000 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        AnalysisChartResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            data: {
+              type: "object",
+              properties: {
+                credit: { type: "number", example: 64000 },
+                debit: { type: "number", example: 25500 },
+                balance: { type: "number", example: 38500 },
+                transactionCount: { type: "number", example: 42 },
+                trend: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      index: { type: "number", example: 1 },
+                      label: { type: "string", example: "2026-03-07" },
+                      createdAt: {
+                        type: "string",
+                        format: "date-time",
+                        example: "2026-03-07T10:10:00.000Z",
+                      },
+                      credit: { type: "number", example: 64000 },
+                      debit: { type: "number", example: 25500 },
+                      balance: { type: "number", example: 38500 },
+                      transactionCount: { type: "number", example: 42 },
                     },
                   },
                 },

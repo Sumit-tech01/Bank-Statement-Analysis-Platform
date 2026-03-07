@@ -1,10 +1,10 @@
 import { Router } from "express";
 import {
   generateAIInsights,
+  generateChart,
   generateSummary,
 } from "../controllers/analysisController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { cacheResponse } from "../middleware/cache.middleware.js";
 
 const router = Router();
 
@@ -37,7 +37,38 @@ const router = Router();
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/summary", authMiddleware, cacheResponse(60), generateSummary);
+router.get("/summary", authMiddleware, generateSummary);
+
+/**
+ * @swagger
+ * /api/v1/analysis/chart:
+ *   get:
+ *     tags: [Analytics]
+ *     summary: Get chart-friendly summary metrics and trend points
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Optional userId filter (admin only)
+ *     responses:
+ *       200:
+ *         description: Chart data generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnalysisChartResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.get("/chart", authMiddleware, generateChart);
 
 /**
  * @swagger

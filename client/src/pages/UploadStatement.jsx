@@ -45,6 +45,7 @@ const UploadStatement = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadNoticeType, setUploadNoticeType] = useState("success");
   const [uploadError, setUploadError] = useState("");
 
   const isFileTab = useMemo(
@@ -54,6 +55,7 @@ const UploadStatement = () => {
 
   const clearFeedback = () => {
     setUploadMessage("");
+    setUploadNoticeType("success");
     setUploadError("");
     setUploadProgress(0);
   };
@@ -80,22 +82,32 @@ const UploadStatement = () => {
         },
       });
 
-      const parsedCount = response?.data?.meta?.parsedTransactions;
+      const parsedCount = Number(response?.data?.meta?.parsedTransactions || 0);
+      const responseMessage = String(response?.data?.message || "");
+      const warningMode =
+        parsedCount === 0 ||
+        /no transactions detected/i.test(responseMessage);
       setUploadProgress(100);
+      setUploadNoticeType(warningMode ? "warning" : "success");
       setUploadMessage(
-        parsedCount
-          ? `Uploaded and parsed ${parsedCount} transactions successfully.`
-          : "File uploaded and parsed successfully."
+        warningMode
+          ? responseMessage || "No transactions detected, but summary calculated."
+          : `Uploaded and parsed ${parsedCount} transactions successfully.`
       );
 
       upsertNotification({
         id: `upload-${Date.now()}`,
-        type: "success",
+        type: warningMode ? "warning" : "success",
         title: "Statement Uploaded",
-        message: parsedCount
-          ? `${parsedCount} transactions were parsed successfully.`
-          : "Statement uploaded and parsed successfully.",
+        message: warningMode
+          ? responseMessage || "No transactions detected, but summary calculated."
+          : `${parsedCount} transactions were parsed successfully.`,
       });
+
+      await Promise.allSettled([
+        api.get("/analysis/summary"),
+        api.get("/analysis/chart"),
+      ]);
 
       setSelectedFile(null);
       notifyDataUpdated();
@@ -210,7 +222,13 @@ const UploadStatement = () => {
       ) : null}
 
       {uploadMessage ? (
-        <p className="max-w-4xl rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+        <p
+          className={`max-w-4xl rounded-xl border px-3 py-2 text-sm ${
+            uploadNoticeType === "warning"
+              ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300"
+          }`}
+        >
           {uploadMessage}
         </p>
       ) : null}

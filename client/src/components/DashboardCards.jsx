@@ -49,22 +49,24 @@ const iconPaths = {
 };
 
 const DashboardCards = ({ summary, transactionCount, loading }) => {
-  const savingsRate = summary.totalIncome
-    ? ((summary.balance / summary.totalIncome) * 100).toFixed(1)
+  const totalCredit = Number(summary.totalCredit ?? summary.totalIncome ?? 0);
+  const totalDebit = Number(summary.totalDebit ?? summary.totalExpenses ?? 0);
+  const savingsRate = totalCredit
+    ? ((summary.balance / totalCredit) * 100).toFixed(1)
     : "0.0";
 
   const metrics = [
     {
       key: "income",
-      title: "Total Income",
-      value: formatCurrency(summary.totalIncome),
+      title: "Total Credit",
+      value: formatCurrency(totalCredit),
       tone: "text-emerald-600 dark:text-emerald-400",
       trend: "+ cash inflow",
     },
     {
       key: "expense",
-      title: "Total Expenses",
-      value: formatCurrency(summary.totalExpenses),
+      title: "Total Debit",
+      value: formatCurrency(totalDebit),
       tone: "text-rose-600 dark:text-rose-400",
       trend: "outflow tracked",
     },
