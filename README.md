@@ -177,17 +177,19 @@ http://localhost:8000/api/v1
 http://localhost:8000/api-docs
 ```
 
-## 🖼️ Screenshots
+## Screenshots
 
-Add your screenshots in the `screenshots/` folder and update paths below.
-
-```md
+### Login Page
 ![Login](screenshots/login.png)
+
+### Dashboard
 ![Dashboard](screenshots/dashboard.png)
-![Transactions](screenshots/transactions.png)
-![Analytics](screenshots/analytics.png)
+
+### Upload Statement
 ![Upload](screenshots/upload.png)
-```
+
+### Swagger API
+![Swagger](screenshots/swagger.png)
 
 ## 🚀 Future Improvements
 
