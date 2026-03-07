@@ -174,7 +174,8 @@ http://localhost:8000/api-docs
 - Team collaboration with org/workspace support
 
 ## 11. Author
-**Your Name**
+**Sumit Jagtap**
 
-- GitHub: `https://github.com/your-username`
-- LinkedIn: `https://linkedin.com/in/your-profile`
+- GitHub: `https://github.com/Sumit-tech01`
+- LinkedIn: `https://www.linkedin.com/in/sumitjagtappatil/`
+- Portfolio: `https://sumitjagtap.vercel.app/`
