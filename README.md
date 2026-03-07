@@ -1,51 +1,18 @@
-# 🏦 Bank Statement Analysis Platform
+# Bank Statement Analysis Platform
 
-A production-ready full-stack fintech application for uploading bank statements, extracting transactions, and generating financial insights through analytics and AI-assisted processing.
+## 1. Title
+**Bank Statement Analysis Platform**
 
-## 📖 Description
+## 2. Description
+Bank Statement Analysis Platform is a production-ready, backend-focused internship project for secure bank statement ingestion and financial analytics.
 
-**Bank Statement Analysis Platform** helps users securely upload statements in multiple formats (CSV, PDF, images), parse transactions using OCR and AI-assisted extraction, and monitor spending behavior through an interactive dashboard.
+The platform supports statement uploads in CSV/PDF/image formats, extracts transactions using OCR and AI-assisted processing, and provides actionable insights through dashboard analytics.
 
-It includes a modern React frontend and a robust Node.js + Express backend with JWT-based security, role-based access, Swagger API docs, caching, and analytics endpoints.
+It combines:
+- A robust Node.js + Express API with JWT security, role-based authorization, rate limiting, and Swagger documentation
+- A modern React frontend for upload, transaction management, and analytics visualization
 
-## ✨ Features
-
-- User registration and login
-- JWT authentication
-- Role-based access control (`user`, `admin`)
-- Upload bank statements (`CSV`, `PDF`, `JPG`, `JPEG`, `PNG`)
-- OCR parsing for scanned/image statements
-- AI transaction extraction and AI financial insights
-- Transaction management (list, edit, delete, manual add)
-- Financial analytics dashboard (summary, trends, category analysis)
-- Budget tracking with alerts
-- Dark / light mode
-- Fully responsive UI
-- Swagger API documentation (`/api-docs`)
-
-## 🧰 Tech Stack
-
-### Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- Recharts
-- Axios
-- React Router
-
-### Backend
-
-- Node.js
-- Express
-- MongoDB + Mongoose
-- JWT authentication
-- bcrypt password hashing
-- Swagger (`swagger-ui-express`, `swagger-jsdoc`)
-- Redis (optional caching)
-
-## 📁 Project Structure
-
+### Repository Structure
 ```bash
 .
 ├── client/                  # React + Vite frontend
@@ -65,62 +32,60 @@ It includes a modern React frontend and a robust Node.js + Express backend with 
 └── README.md
 ```
 
-## ⚙️ Installation Steps
+## 3. Tech Stack
+### Backend
+- Node.js
+- Express
+- MongoDB + Mongoose
+- JWT authentication
+- bcrypt password hashing
+- Swagger (`swagger-ui-express`, `swagger-jsdoc`)
+- Redis (optional caching)
 
-### 1. Clone repository
+### Frontend
+- React
+- Vite
+- Tailwind CSS
+- Recharts
+- Axios
+- React Router
 
+## 4. Features
+- User registration and login
+- JWT authentication
+- Role-based access control (`user`, `admin`)
+- Upload bank statements (`CSV`, `PDF`, `JPG`, `JPEG`, `PNG`)
+- OCR parsing for scanned/image statements
+- AI transaction extraction and AI-generated financial insights
+- Transaction management (list, edit, delete, manual add)
+- Financial analytics dashboard (summary, trends, category analysis)
+- Budget tracking with alerts
+- Dark/light mode
+- Fully responsive UI
+- Swagger API documentation (`/api-docs`)
+
+## 5. Installation
+### Clone the Repository
 ```bash
 git clone https://github.com/your-username/bank-statement-analysis-platform.git
 cd bank-statement-analysis-platform
 ```
 
-### 2. Install backend dependencies (root)
-
+### Install Dependencies
+Backend dependencies (from project root):
 ```bash
 npm install
 ```
 
-### 3. Install frontend dependencies
-
+Frontend dependencies:
 ```bash
 cd client
 npm install
 cd ..
 ```
 
-### 4. Configure environment variables
-
-Create `.env` in project root and add required values (see next section).
-
-### 5. Run backend (Terminal 1)
-
-```bash
-npm run dev
-```
-
-Backend runs at:
-
-```text
-http://localhost:8000
-```
-
-### 6. Run frontend (Terminal 2)
-
-```bash
-cd client
-npm run dev
-```
-
-Frontend runs at:
-
-```text
-http://localhost:5173
-```
-
-## 🔐 Environment Variables
-
-### Root `.env`
-
+### Environment Variables
+Create a `.env` file in the project root:
 ```env
 NODE_ENV=development
 PORT=8000
@@ -135,28 +100,46 @@ RATE_LIMIT_MAX=100
 RATE_LIMIT_MAX_DEV=1000
 ```
 
-### Frontend `client/.env` (optional)
-
+Optional frontend environment file (`client/.env`):
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-## 🌐 API Endpoints
+## 6. Run Backend
+From the project root:
+```bash
+npm run dev
+```
 
-Base URL:
+Backend service:
+```text
+http://localhost:8000
+```
 
+## 7. Run Frontend
+From the `client` directory:
+```bash
+cd client
+npm run dev
+```
+
+Frontend service:
+```text
+http://localhost:5173
+```
+
+## 8. API Documentation
+Base API URL:
 ```text
 http://localhost:8000/api/v1
 ```
 
-### Auth
-
+### Authentication Endpoints
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
 
-### Statements
-
+### Statement Endpoints
 - `POST /statements`
 - `POST /statements/upload`
 - `POST /statements/manual`
@@ -166,19 +149,16 @@ http://localhost:8000/api/v1
 - `DELETE /statements/:id/transactions/:transactionIndex`
 - `DELETE /statements/:id`
 
-### Analysis
-
+### Analysis Endpoints
 - `GET /analysis/summary`
 - `GET /analysis/ai-insights`
 
-### Swagger Docs
-
+### Swagger UI
 ```text
 http://localhost:8000/api-docs
 ```
 
-## Screenshots
-
+## 9. Screenshots
 ### Dashboard
 ![Dashboard](screenshots/dashboard.png)
 
@@ -191,8 +171,14 @@ http://localhost:8000/api-docs
 ### Swagger API
 ![Swagger](screenshots/swagger.png)
 
-## 🚀 Future Improvements
+## 10. Scalability Notes
+- The backend is stateless (JWT-based), which supports horizontal scaling behind a load balancer.
+- Redis integration is available for caching and can reduce repeated expensive reads/computations.
+- API rate-limiting controls are configurable via environment variables.
+- The service-controller-route separation supports modular extension for new domains and features.
+- Current architecture can be extended with queue-based background processing for OCR/AI-heavy workloads.
 
+## 11. Future Improvements
 - Smart category auto-tagging with improved AI prompts
 - Background processing queue for heavy statement files
 - Real-time notifications and webhook integrations
@@ -200,8 +186,7 @@ http://localhost:8000/api-docs
 - Export analytics reports (PDF/Excel)
 - Team collaboration with org/workspace support
 
-## 👨‍💻 Author
-
+## 12. Author
 **Your Name**
 
 - GitHub: `https://github.com/your-username`
