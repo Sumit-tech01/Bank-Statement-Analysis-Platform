@@ -179,14 +179,14 @@ http://localhost:8000/api-docs
 
 ## Screenshots
 
-### Login Page
-![Login](screenshots/login.png)
-
 ### Dashboard
 ![Dashboard](screenshots/dashboard.png)
 
 ### Upload Statement
 ![Upload](screenshots/upload.png)
+
+### Transactions
+![Transactions](screenshots/transactions.png)
 
 ### Swagger API
 ![Swagger](screenshots/swagger.png)
@@ -206,17 +206,3 @@ http://localhost:8000/api-docs
 
 - GitHub: `https://github.com/your-username`
 - LinkedIn: `https://linkedin.com/in/your-profile`
-
-## Screenshots
-
-### Login Page
-![Login](screenshots/login.png)
-
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### Upload Statement
-![Upload](screenshots/upload.png)
-
-### Swagger API
-![Swagger](screenshots/swagger.png)
