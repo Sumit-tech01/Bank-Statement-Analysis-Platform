@@ -179,14 +179,14 @@ http://localhost:8000/api-docs
 
 ## 🖼️ Screenshots
 
-Add your screenshots in a folder such as `docs/screenshots/` and update paths below.
+Add your screenshots in the `screenshots/` folder and update paths below.
 
 ```md
-![Login](docs/screenshots/login.png)
-![Dashboard](docs/screenshots/dashboard.png)
-![Transactions](docs/screenshots/transactions.png)
-![Analytics](docs/screenshots/analytics.png)
-![Upload](docs/screenshots/upload.png)
+![Login](screenshots/login.png)
+![Dashboard](screenshots/dashboard.png)
+![Transactions](screenshots/transactions.png)
+![Analytics](screenshots/analytics.png)
+![Upload](screenshots/upload.png)
 ```
 
 ## 🚀 Future Improvements
