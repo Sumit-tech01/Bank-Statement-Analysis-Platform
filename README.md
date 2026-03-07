@@ -158,27 +158,14 @@ http://localhost:8000/api/v1
 http://localhost:8000/api-docs
 ```
 
-## 9. Screenshots
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### Upload Statement
-![Upload](screenshots/upload.png)
-
-### Transactions
-![Transactions](screenshots/transactions.png)
-
-### Swagger API
-![Swagger](screenshots/swagger.png)
-
-## 10. Scalability Notes
+## 9. Scalability Notes
 - The backend is stateless (JWT-based), which supports horizontal scaling behind a load balancer.
 - Redis integration is available for caching and can reduce repeated expensive reads/computations.
 - API rate-limiting controls are configurable via environment variables.
 - The service-controller-route separation supports modular extension for new domains and features.
 - Current architecture can be extended with queue-based background processing for OCR/AI-heavy workloads.
 
-## 11. Future Improvements
+## 10. Future Improvements
 - Smart category auto-tagging with improved AI prompts
 - Background processing queue for heavy statement files
 - Real-time notifications and webhook integrations
@@ -186,7 +173,7 @@ http://localhost:8000/api-docs
 - Export analytics reports (PDF/Excel)
 - Team collaboration with org/workspace support
 
-## 12. Author
+## 11. Author
 **Your Name**
 
 - GitHub: `https://github.com/your-username`
