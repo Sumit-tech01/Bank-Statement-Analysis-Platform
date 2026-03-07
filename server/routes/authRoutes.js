@@ -12,23 +12,20 @@ const router = Router();
 
 /**
  * @swagger
- * tags:
- *   - name: Auth
- *     description: Authentication endpoints
- */
-
-/**
- * @swagger
  * /api/v1/auth/register:
  *   post:
  *     tags: [Auth]
- *     summary: Register a new user
+ *     summary: Register a new user account
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/RegisterRequest'
+ *           example:
+ *             name: Sumit
+ *             email: sumit@mail.com
+ *             password: "12345678"
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -37,9 +34,11 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
  *       400:
- *         description: Invalid request
+ *         $ref: '#/components/responses/BadRequest'
  *       409:
- *         description: Email already registered
+ *         $ref: '#/components/responses/Conflict'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post("/register", validate(registerSchema), registerUser);
 
@@ -48,13 +47,16 @@ router.post("/register", validate(registerSchema), registerUser);
  * /api/v1/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Login with email and password
+ *     summary: Login and receive JWT token
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/LoginRequest'
+ *           example:
+ *             email: sumit@mail.com
+ *             password: "12345678"
  *     responses:
  *       200:
  *         description: Login successful
@@ -62,8 +64,12 @@ router.post("/register", validate(registerSchema), registerUser);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
  *       401:
- *         description: Invalid credentials
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.post("/login", validate(loginSchema), loginUser);
 
@@ -71,8 +77,8 @@ router.post("/login", validate(loginSchema), loginUser);
  * @swagger
  * /api/v1/auth/me:
  *   get:
- *     tags: [Auth]
- *     summary: Get current authenticated user
+ *     tags: [Auth, Profile]
+ *     summary: Get currently authenticated user profile
  *     security:
  *       - BearerAuth: []
  *     responses:
@@ -92,11 +98,11 @@ router.post("/login", validate(loginSchema), loginUser);
  *                     user:
  *                       $ref: '#/components/schemas/User'
  *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get("/me", authMiddleware, getCurrentUser);
 

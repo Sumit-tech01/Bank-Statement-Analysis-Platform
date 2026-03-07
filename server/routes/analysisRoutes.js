@@ -10,17 +10,10 @@ const router = Router();
 
 /**
  * @swagger
- * tags:
- *   - name: Analysis
- *     description: Financial analysis endpoints
- */
-
-/**
- * @swagger
  * /api/v1/analysis/summary:
  *   get:
- *     tags: [Analysis]
- *     summary: Generate financial summary
+ *     tags: [Analytics]
+ *     summary: Generate financial summary analytics
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -29,7 +22,7 @@ const router = Router();
  *         required: false
  *         schema:
  *           type: string
- *         description: Optional user id filter (admin only)
+ *         description: Optional userId filter (admin only)
  *     responses:
  *       200:
  *         description: Summary generated successfully
@@ -37,12 +30,12 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AnalysisSummaryResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
  *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get("/summary", authMiddleware, cacheResponse(60), generateSummary);
 
@@ -50,7 +43,7 @@ router.get("/summary", authMiddleware, cacheResponse(60), generateSummary);
  * @swagger
  * /api/v1/analysis/ai-insights:
  *   get:
- *     tags: [Analysis]
+ *     tags: [Analytics]
  *     summary: Generate AI-powered financial insights
  *     security:
  *       - BearerAuth: []
@@ -60,23 +53,20 @@ router.get("/summary", authMiddleware, cacheResponse(60), generateSummary);
  *         required: false
  *         schema:
  *           type: string
- *         description: Optional user id filter (admin only)
+ *         description: Optional userId filter (admin only)
  *     responses:
  *       200:
  *         description: AI insights generated successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 insights:
- *                   type: array
- *                   items:
- *                     type: string
+ *               $ref: '#/components/schemas/AIInsightsResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
  *       401:
- *         description: Unauthorized
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
  */
 router.get("/ai-insights", authMiddleware, generateAIInsights);
 
